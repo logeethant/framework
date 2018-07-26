@@ -10,16 +10,16 @@ class ProductSearchRepository
     /**
      * @var \Shopsys\FrameworkBundle\Component\Microservice\MicroserviceClient
      */
-    protected $client;
+    protected $microserviceProductSearchClient;
 
     /**
      * @var int[][][]
      */
     protected $foundProductIdsCache = [];
 
-    public function __construct(MicroserviceClient $client)
+    public function __construct(MicroserviceClient $microserviceProductSearchClient)
     {
-        $this->client = $client;
+        $this->microserviceProductSearchClient = $microserviceProductSearchClient;
     }
 
     /**
@@ -69,7 +69,11 @@ class ProductSearchRepository
         $domainId = $productQueryBuilder->getParameter('domainId')->getValue();
 
         if (!isset($this->foundProductIdsCache[$domainId][$searchText])) {
-            $foundProductIds = $this->client->search($domainId, $searchText)->productIds;
+            $searchResult = $this->microserviceProductSearchClient->get('product-ids', [
+                'query' => $searchText,
+                'domainId' => $domainId,
+            ]);
+            $foundProductIds = $searchResult->productIds;
 
             $this->foundProductIdsCache[$domainId][$searchText] = $foundProductIds;
         }
